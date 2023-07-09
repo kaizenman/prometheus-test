@@ -1,36 +1,32 @@
-#include <boost/asio.hpp>
-#include <iostream>
-#include <nlohmann/json.hpp>
-#include <string>
+#include <prometheus/counter.h>
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
 
-using boost::asio::local::stream_protocol;
-using json = nlohmann::json;
-using std::cerr;
-using std::exception;
-using std::string;
-
-constexpr char kSocketPath[] = "/tmp/metrics.sock";
-
-void send_metrics() {
-    try {
-        boost::asio::io_service io_service;
-
-        // Connect to the Unix domain socket
-        stream_protocol::socket s(io_service);
-        s.connect(stream_protocol::endpoint(kSocketPath));
-
-        // Create a complex JSON object
-        json data{{"name", "test"}, {"gauge", 10}};
-
-        // Convert the JSON to a string and send it to the Python server
-        string message = data.dump() + "\n";
-        boost::asio::write(s, boost::asio::buffer(message));
-    } catch (exception& e) {
-        cerr << "Exception: " << e.what() << "\n";
-    }
-}
+#include <thread>
+#include <chrono>
 
 int main() {
-    send_metrics();
+    // Create a Prometheus registry.
+    auto registry = std::make_shared<prometheus::Registry>();
+
+    // Create a counter.
+    auto& counter_family = prometheus::BuildCounter()
+        .Name("app_requests_total")
+        .Help("Total app requests")
+        .Register(*registry);
+    auto& counter = counter_family.Add({});
+
+    // Increment the counter.
+    counter.Increment();
+
+    // Expose the metrics.
+    prometheus::Exposer exposer{"127.0.0.1:8001"};
+    exposer.RegisterCollectable(registry);
+
+    // Add an infinite loop to keep the program running.
+    for (;;) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
     return 0;
 }

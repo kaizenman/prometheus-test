@@ -1,27 +1,16 @@
-cmake_minimum_required(VERSION 3.14)  # for FetchContent
-
-project(cpp_prometheus)
+cmake_minimum_required(VERSION 3.11)
+project(MyProject)
 
 set(CMAKE_CXX_STANDARD 14)
 
-# Locate Boost libraries: context, coroutine, and system
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.65.1 REQUIRED COMPONENTS system)
-
-include_directories(${Boost_INCLUDE_DIRS})
-
-# Include nlohmann_json via FetchContent
 include(FetchContent)
 FetchContent_Declare(
-  json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.10.4
+  prometheus_cpp
+  GIT_REPOSITORY https://github.com/jupp0r/prometheus-cpp.git
+  GIT_TAG        v0.12.3 # adjust this to the version you want
 )
-FetchContent_MakeAvailable(json)
+FetchContent_MakeAvailable(prometheus_cpp)
 
-add_executable(cpp_prometheus main.cpp)
+add_executable(MyProject main.cpp)
 
-# Link Boost libraries to the new target
-target_link_libraries(cpp_prometheus ${Boost_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(MyProject PRIVATE prometheus-cpp::core prometheus-cpp::pull)

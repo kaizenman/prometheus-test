@@ -1,4 +1,10 @@
 scrape_configs:
-  - job_name: 'python_server'
+  - job_name: 'python_app'
+    scrape_interval: 5s
     static_configs:
-      - targets: ['localhost:8001']
+      - targets: ['127.0.0.1:8000']
+  - job_name: 'cpp_app'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['127.0.0.1:8001']
+
